@@ -1,0 +1,52 @@
+"""
+API Tests
+DS 3500 - MP2
+
+Tests the upload, processing, and retrieval endpoints
+using pytest fixtures and FastAPI's TestClient.
+"""
+
+def test_upload_csv(client, sample_csv_bytes):
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "sample_data.csv",
+                sample_csv_bytes,
+                "text/csv"
+            )
+        }
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["rows"] == 6
+    assert body["columns"] == 2
+    assert isinstance(body["id"], int) and body["id"] > 0
+
+def test_process_and_retrieve(
+    client, uploaded_dataset_id, processing_body
+):
+    response = client.post(
+        f"/datasets/{uploaded_dataset_id}/process",
+        json=processing_body
+    )
+    assert response.status_code == 200
+    report = response.json()
+    assert report["validation_rows_removed"] == 1
+    assert report["cleaning_report"]["rows_before"] == 5
+    assert report["cleaning_report"]["rows_after"] == 3
+
+    response = client.get(f"/datasets/{uploaded_dataset_id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_rows"] == 3
+
+    records = body["data"]
+    pairs = {(record["student_id"], record["score"]) for record in records}
+    assert pairs == {(1, 80), (2, 90), (5, 85)}
+
+
+def test_retrieve_missing_dataset(client):
+    response = client.get("/datasets/9999")
+    assert response.status_code == 404
