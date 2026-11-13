@@ -13,4 +13,7 @@ from .models import (
     MovieProcessingReport,
 )
 from .storage import MovieStorage
+from .cache import MovieCache
 from .utils import setup_logging
+
+__all__ = ["MovieStorage", "MovieCache"]
