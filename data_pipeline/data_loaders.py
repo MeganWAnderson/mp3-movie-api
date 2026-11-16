@@ -56,7 +56,7 @@ def load_yaml(filepath):
         data = yaml.safe_load(f)
     logger.info(f"Loaded YAML file: {filepath}")
     return data
-    
+
 # Final Load Function
 def load_data(filepath):
     """

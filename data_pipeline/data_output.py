@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Define save function
 def save_data(df, filepath):
-    """"
+    """
     Save a DataFrame as a CSV file.
 
     Args:

@@ -9,25 +9,25 @@ and cache hits that skip the database.
 import pandas as pd
 import pytest
 
-from src import MovieStorage
 import main
-
-COLUMNS = ["title", "release_year", "rating", "genre"]
+from src import MovieStorage
+from src.storage import MOVIE_COLUMNS
 
 
 def test_movies_persist(client, test_storage, uploaded_movies):
+    """Uploaded movies persist in SQLite and match the API's IDs."""
     # A second storage object pointing at the same database file
     other = MovieStorage(test_storage.db_path)
 
     df = other.get()
     assert len(df) == 20
     assert other.count_movies() == 20
-    assert list(df.columns) == COLUMNS
+    assert list(df.columns) == MOVIE_COLUMNS
 
     expected_titles = pd.read_csv("fixtures/sample_movies.csv")["title"].tolist()
     assert df["title"].tolist() == expected_titles
 
-    storage_ids = [row["id"] for row in other.select_columns(COLUMNS, limit=100)]
+    storage_ids = [row["id"] for row in other.select_columns(MOVIE_COLUMNS, limit=100)]
     response = client.get("/movies", params={"limit": 100})
     assert response.status_code == 200
     api_ids = [row["id"] for row in response.json()["data"]]
@@ -37,6 +37,7 @@ def test_movies_persist(client, test_storage, uploaded_movies):
 
 
 def test_cache_and_processing(client, uploaded_movies, processing_body):
+    """Processing clears old cache entries and the new result is cached."""
     # Populate the cache for two limits
     first = {}
     for limit in (100, 1):
@@ -73,6 +74,7 @@ def test_cache_and_processing(client, uploaded_movies, processing_body):
 
 
 def test_cache_hit_skips_database(client, uploaded_movies, monkeypatch):
+    """A cached request is answered without reading the database."""
     # Populate the cache
     first = client.get("/movies", params={"limit": 100})
     assert first.status_code == 200

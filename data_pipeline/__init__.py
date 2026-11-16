@@ -1,3 +1,10 @@
+"""
+Data Pipeline Package
+DS 3500 - MP1
+
+Exposes the MP1 functions for loading, validating, processing,
+and saving data, plus logging setup and input path checks.
+"""
 from .data_loaders import load_data
 from .data_output import save_data
 from .data_processor import process_data, create_cleaning_report

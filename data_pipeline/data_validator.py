@@ -33,7 +33,7 @@ def validate_dataframe(df, required_columns, numeric_columns):
         ValueError: If required columns are missing.
     """
 
-    # Create static before df for comparison 
+    # Create static before df for comparison
     before_rows = len(df)
 
     # Check for required columns

@@ -21,7 +21,7 @@ from src import (
     MovieDataResponse,
     MovieProcessingReport,
     MovieStorage,
-    MovieCache, 
+    MovieCache,
     MovieUploadInfo,
     ProcessConfig,
     log_requests,
@@ -38,9 +38,10 @@ logger = logging.getLogger(__name__)
 storage = MovieStorage()
 cache = MovieCache()
 
-# Set up FastAPI app and dataset storage
-app = FastAPI(title="Data Processing API", version="1.0.0")
+# Set up FastAPI app
+app = FastAPI(title="Movie API", version="1.0.0")
 app.middleware("http")(log_requests)
+
 
 # API Endpoints
 @app.get("/health", response_model=HealthResponse)
@@ -86,7 +87,7 @@ async def upload_movies(file: UploadFile = File(...)):
 
     # Replace the stored collection
     storage.save(df)
-    cache.invalidate()  
+    cache.invalidate()
     logger.info(f"Uploaded movies: filename={file.filename}, rows={len(df)}")
 
     return MovieUploadInfo(
@@ -103,7 +104,10 @@ def get_movies(limit: int = Query(default=100, ge=1)):
     # Check cache first
     cached = cache.get(limit)
     if cached is not None:
-        logger.info(f"Retrieved movies from cache: limit={limit}, returned_rows={len(cached['data'])}, total_rows={cached['total_rows']}")
+        logger.info(
+            f"Retrieved movies from cache: limit={limit}, "
+            f"returned_rows={len(cached['data'])}, total_rows={cached['total_rows']}"
+        )
         return cached
 
     # Retrieve from storage
@@ -116,19 +120,20 @@ def get_movies(limit: int = Query(default=100, ge=1)):
     logger.info(f"Retrieved movies: returned_rows={len(records)}, total_rows={total}")
     return response
 
+
 @app.get("/movies/search", response_model=list[dict])
 def query_movies(
     columns: list[str] = Query(default=["title"]),
     min_rating: float = Query(default=0, ge=0, le=10),
     limit: int = Query(default=100, ge=1)
 ):
-    # Call storage.query_movies(columns, min_rating, limit).
-    # Catch ValueError and raise HTTPException with status 400.
-    # Return id plus the selected fields, or [] if there are no matches.
-    # Log the selected columns and returned row count at INFO.
+    """Return id plus selected columns for movies at or above min_rating."""
     try:
         records = storage.query_movies(columns, min_rating, limit)
-        logger.info(f"Queried movies: columns={columns}, min_rating={min_rating}, returned_rows={len(records)}")
+        logger.info(
+            f"Queried movies: columns={columns}, min_rating={min_rating}, "
+            f"returned_rows={len(records)}"
+        )
         return records
     except ValueError as e:
         logger.warning(f"Query failed: {e}")
@@ -175,7 +180,7 @@ def process_movies(config: ProcessConfig):
 
     # Save the processed dataset and invalidate the cache
     storage.save(processed)
-    cache.invalidate() 
+    cache.invalidate()
 
     logger.info(
         f"Processed movies: "

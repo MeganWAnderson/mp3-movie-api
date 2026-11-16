@@ -1,33 +1,32 @@
 """
 Data Models
-DS 3500 - MP2
+DS 3500 - MP3
 
-Defines Pydantic models for REST API responses 
-and request models for processing configuration.
+Defines Pydantic models for API request bodies and responses.
 
-Specifies the structure and data types for health check
-responses and dataset metadata returned by the API.
+Response models describe the health check, the movie upload summary,
+retrieved movie records with a total count, and the processing report.
+Request models describe the validation and processing settings sent
+to POST /movies/process.
 """
+
 from pydantic import BaseModel, Field
+
 
 class HealthResponse(BaseModel):
     status: str
     version: str
 
-class DatasetInfo(BaseModel):
-    id: int
-    filename: str
-    rows: int
-    columns: int
-    column_names: list[str]
 
 class ValidationSettings(BaseModel):
     required_columns: list[str] = Field(default_factory=list)
     numeric_columns: list[str] = Field(default_factory=list)
 
+
 class MissingSettings(BaseModel):
     enabled: bool = True
     axis: str = "rows"
+
 
 class OutlierSettings(BaseModel):
     enabled: bool = False
@@ -35,19 +34,17 @@ class OutlierSettings(BaseModel):
     method: str = "iqr"
     threshold: float = 1.5
 
+
 class ProcessingSettings(BaseModel):
     remove_duplicates: bool = True
     missing: MissingSettings = Field(default_factory=MissingSettings)
     outliers: OutlierSettings = Field(default_factory=OutlierSettings)
 
+
 class ProcessConfig(BaseModel):
     validation: ValidationSettings = Field(default_factory=ValidationSettings)
     processing: ProcessingSettings = Field(default_factory=ProcessingSettings)
 
-class ProcessingReport(BaseModel):
-    id: int
-    validation_rows_removed: int
-    cleaning_report: dict[str, int]
 
 class MovieUploadInfo(BaseModel):
     filename: str
@@ -55,9 +52,11 @@ class MovieUploadInfo(BaseModel):
     columns: int
     column_names: list[str]
 
+
 class MovieDataResponse(BaseModel):
     data: list[dict]
     total_rows: int
+
 
 class MovieProcessingReport(BaseModel):
     validation_rows_removed: int

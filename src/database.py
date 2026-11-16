@@ -1,10 +1,19 @@
+"""
+Database Setup
+DS 3500 - MP3
+
+Creates SQLite connections and the movies table.
+
+Each connection returns rows that can be read by column name,
+and the database's parent folder is created if it does not exist.
+"""
+
 import sqlite3
 from pathlib import Path
 
 
 def get_connection(db_path):
     """Return a fresh connection with rows accessible by column name."""
-    # Create the parent directory, connect, and set sqlite3.Row.
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
@@ -14,7 +23,6 @@ def get_connection(db_path):
 
 def initialize_database(db_path):
     """Create the movie table if it does not exist."""
-    # Create the movie table if needed, commit, and close the connection.
     conn = get_connection(db_path)
     try:
         conn.execute("""
